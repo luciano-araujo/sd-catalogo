@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/catalogo")
 @RequiredArgsConstructor
@@ -21,10 +23,20 @@ public class CatalogoController {
 
     private final CatalogoService catalogoService;
 
+    @GetMapping("/produtos")
+    @Operation(
+            summary = "Lista todos os produtos",
+            description = "Retorna todos os produtos do catálogo"
+    )
+    @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
+    public ResponseEntity<List<ProdutoResponseDTO>> getAllProdutos() {
+        return ResponseEntity.ok(catalogoService.getAllProdutos());
+    }
+
     @GetMapping("/produto/{id}")
     @Operation(
             summary = "Busca produto por ID",
-            description = "Retorna os dados do produto com o preço consultado no sd-preco"
+            description = "Retorna os dados do produto por ID"
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Produto encontrado"),

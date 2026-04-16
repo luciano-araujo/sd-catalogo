@@ -5,23 +5,31 @@ import br.edu.ifsp.sd_catalogo.model.Produto;
 import br.edu.ifsp.sd_catalogo.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CatalogoService {
 
     private final ProdutoRepository produtoRepository;
-    private final RestTemplate restTemplate;
+
+    public List<ProdutoResponseDTO> getAllProdutos() {
+        return produtoRepository.findAll()
+                .stream()
+                .map(produto -> new ProdutoResponseDTO(
+                        produto.getId(),
+                        produto.getNome(),
+                        produto.getDescricao(),
+                        null
+                ))
+                .toList();
+    }
 
     public ProdutoResponseDTO getProduto(Long id) {
         Produto produto = produtoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
 
-        Double preco = restTemplate.getForObject(
-                "http://sd-preco:8081/preco/" + id, Double.class
-        );
-
-        return new ProdutoResponseDTO(produto.getId(), produto.getNome(), produto.getDescricao(), preco);
+        return new ProdutoResponseDTO(produto.getId(), produto.getNome(), produto.getDescricao(), null);
     }
 }
