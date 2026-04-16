@@ -1,5 +1,6 @@
 package br.edu.ifsp.sd_catalogo.service;
 
+import br.edu.ifsp.sd_catalogo.dto.PrecoResponseDTO;
 import br.edu.ifsp.sd_catalogo.dto.ProdutoResponseDTO;
 import br.edu.ifsp.sd_catalogo.model.Produto;
 import br.edu.ifsp.sd_catalogo.repository.ProdutoRepository;
@@ -51,10 +52,13 @@ public class CatalogoService {
         Produto produto = produtoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
 
-        Double preco = restTemplate.getForObject(
+        PrecoResponseDTO precoResponse = restTemplate.getForObject(
                 sdPrecoUrl + "/preco/" + id,
-                Double.class
+                PrecoResponseDTO.class
         );
+
+        Double preco = precoResponse != null ? precoResponse.preco() : null;
+
 
         return new ProdutoResponseDTO(produto.getId(), produto.getNome(), produto.getDescricao(), preco);
     }
