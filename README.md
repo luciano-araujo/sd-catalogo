@@ -27,7 +27,7 @@ A aplicação foi preparada para ser implantada em instâncias **Amazon EC2** de
 ## 🚀 Como Executar
 
 ### 1. Pré-requisitos
-* **Java JDK 17 ou Superior** instalado.
+* **Java JDK 17 (ou superior)** instalado.
 * **Maven 3.8+** instalado.
 * O microsserviço `sd-preco` deve estar em execução (preferencialmente na porta 8081).
 
