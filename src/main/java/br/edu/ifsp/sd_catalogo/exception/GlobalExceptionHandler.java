@@ -10,8 +10,8 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Object> handleRuntimeException(RuntimeException ex) {
+    @ExceptionHandler(ProdutoNaoEncontradoException.class)
+    public ResponseEntity<Object> handleProdutoNaoEncontradoException(ProdutoNaoEncontradoException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("erro", ex.getMessage()));
     }
