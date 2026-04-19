@@ -90,7 +90,6 @@ public class CatalogoService {
             }
         } catch (Exception e) {
             log.error("Erro ao comunicar com sd-preco para o id {}: {}", id, e.getMessage());
-            throw(new ProdutoNaoEncontradoException("Produto encontrado, mas falha ao obter preço para id=" + id));
         }
 
         return new ProdutoResponseDTO(produto.getId(), produto.getNome(), produto.getDescricao(), preco);
