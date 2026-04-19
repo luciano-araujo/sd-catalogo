@@ -9,11 +9,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,28 +30,38 @@ public class CatalogoService {
 
     public List<ProdutoResponseDTO> getAllProdutos() {
         List<Produto> produtos = produtoRepository.findAll();
-        log.info("Buscando todos os produtos do catálogo");
 
         List<Long> ids = produtos.stream()
                 .map(Produto::getId)
                 .toList();
 
-        log.info("Buscando preços para os produtos: {}", ids);
-        Map<Long, Double> precos = restTemplate.exchange(
-                sdPrecoUrl + "/preco/lote",
-                HttpMethod.POST,
-                new HttpEntity<>(ids),
-                new ParameterizedTypeReference<Map<Long, Double>>() {
-                }
-        ).getBody();
-        log.info("Preços recebidos: {}", precos);
+        Map<Long, Double> precosTemp = new HashMap<>();
+
+        try {
+            Map<Long, Double> response = restTemplate.exchange(
+                    sdPrecoUrl + "/preco/lote",
+                    HttpMethod.POST,
+                    new org.springframework.http.HttpEntity<>(ids),
+                    new ParameterizedTypeReference<Map<Long, Double>>() {
+                    }
+            ).getBody();
+
+            if (response != null) {
+                precosTemp = response;
+            }
+            log.info("Preços consultados em lote com sucesso.");
+        } catch (Exception e) {
+            log.error("Falha ao consultar lote de preços no sd-preco: {}", e.getMessage());
+        }
+
+        final Map<Long, Double> precosFinais = precosTemp;
 
         return produtos.stream()
                 .map(produto -> new ProdutoResponseDTO(
                         produto.getId(),
                         produto.getNome(),
                         produto.getDescricao(),
-                        precos != null ? precos.get(produto.getId()) : null
+                        precosFinais.get(produto.getId())
                 ))
                 .toList();
     }
