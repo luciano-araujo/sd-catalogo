@@ -12,7 +12,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -42,7 +41,8 @@ public class CatalogoService {
                 sdPrecoUrl + "/preco/lote",
                 HttpMethod.POST,
                 new HttpEntity<>(ids),
-                new ParameterizedTypeReference<Map<Long, Double>>() {}
+                new ParameterizedTypeReference<Map<Long, Double>>() {
+                }
         ).getBody();
         log.info("Preços recebidos: {}", precos);
 
@@ -69,20 +69,18 @@ public class CatalogoService {
             throw e;
         }
 
-        PrecoResponseDTO precoResponse = null;
-        
+        Double preco = null;
         try {
-            log.info("Buscando preço para o produto id={}", id);
-            precoResponse = restTemplate.getForObject(
+            PrecoResponseDTO precoResponse = restTemplate.getForObject(
                     sdPrecoUrl + "/preco/" + id,
                     PrecoResponseDTO.class
             );
-        } catch (RestClientException e) {
-            log.warn("Erro ao buscar preço para o produto id={}: {}", id, e.getMessage());
+            if (precoResponse != null) {
+                preco = precoResponse.preco();
+            }
+        } catch (Exception e) {
+            log.error("Erro ao comunicar com sd-preco para o id {}: {}", id, e.getMessage());
         }
-        
-        Double preco = precoResponse != null ? precoResponse.preco() : null;
-
 
         return new ProdutoResponseDTO(produto.getId(), produto.getNome(), produto.getDescricao(), preco);
     }
