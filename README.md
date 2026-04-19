@@ -18,7 +18,7 @@ A aplicação foi preparada para ser implantada em instâncias **Amazon EC2** de
 
 ## 🛠️ Tecnologias Utilizadas
 
-* **Java 17 ou Superior** & **Spring Boot 3**
+* **Java 26** & **Spring Boot 4.0.5**
 * **Spring Data JPA** com banco de dados **H2** (In-memory)
 * **SpringDoc OpenAPI (Swagger)** para documentação automática
 * **Lombok** para código limpo e conciso
