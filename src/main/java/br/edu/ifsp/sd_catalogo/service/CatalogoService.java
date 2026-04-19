@@ -74,7 +74,7 @@ public class CatalogoService {
             log.info("Buscando produto com id={}", id);
             produto = produtoRepository.findById(id)
                     .orElseThrow(() -> new ProdutoNaoEncontradoException("Produto não encontrado"));
-        } catch (RuntimeException e) {
+        } catch (ProdutoNaoEncontradoException e) {
             log.warn("Produto com id={} não encontrado", id);
             throw e;
         }
@@ -90,6 +90,7 @@ public class CatalogoService {
             }
         } catch (Exception e) {
             log.error("Erro ao comunicar com sd-preco para o id {}: {}", id, e.getMessage());
+            throw(new ProdutoNaoEncontradoException("Produto encontrado, mas falha ao obter preço para id=" + id));
         }
 
         return new ProdutoResponseDTO(produto.getId(), produto.getNome(), produto.getDescricao(), preco);
