@@ -1,9 +1,11 @@
 package br.edu.ifsp.sd_catalogo.exception;
 
-public class ProdutoNaoEncontradoException extends RuntimeException{
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-    public ProdutoNaoEncontradoException(String message){
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ProdutoNaoEncontradoException extends RuntimeException {
+    public ProdutoNaoEncontradoException(String message) {
         super(message);
     }
-
 }
