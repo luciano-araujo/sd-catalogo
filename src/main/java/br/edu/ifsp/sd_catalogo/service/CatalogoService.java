@@ -1,6 +1,7 @@
 package br.edu.ifsp.sd_catalogo.service;
 
 import br.edu.ifsp.sd_catalogo.dto.PrecoResponseDTO;
+import br.edu.ifsp.sd_catalogo.dto.ProdutoRequestDTO;
 import br.edu.ifsp.sd_catalogo.dto.ProdutoResponseDTO;
 import br.edu.ifsp.sd_catalogo.exception.ProdutoNaoEncontradoException;
 import br.edu.ifsp.sd_catalogo.model.Produto;
@@ -68,9 +69,7 @@ public class CatalogoService {
     }
 
     public ProdutoResponseDTO getProduto(Long id) {
-
         Produto produto;
-
         try {
             log.info("Buscando produto com id={}", id);
             produto = produtoRepository.findById(id)
@@ -80,19 +79,115 @@ public class CatalogoService {
             throw e;
         }
 
-        Double preco = null;
+        Double preco = getPrecoAtualDoSdPreco(id);
+        return new ProdutoResponseDTO(produto.getId(), produto.getNome(), produto.getDescricao(), preco);
+    }
+
+    public ProdutoResponseDTO createProduto(ProdutoRequestDTO dto) {
+        log.info("Criando novo produto: {}", dto.nome());
+
+        if (dto.nome() == null || dto.nome().isBlank() || dto.preco() == null) {
+            throw new IllegalArgumentException("Nome e Preço são obrigatórios para criar um produto.");
+        }
+
+        Produto novoProduto = new Produto();
+        novoProduto.setNome(dto.nome());
+        novoProduto.setDescricao(dto.descricao());
+
+        Produto produtoSalvo = produtoRepository.save(novoProduto);
+
+        try {
+            restTemplate.exchange(
+                    sdPrecoUrl + "/preco/novo/" + produtoSalvo.getId(),
+                    HttpMethod.POST,
+                    new org.springframework.http.HttpEntity<>(Map.of("valor", dto.preco())),
+                    Void.class
+            );
+            log.info("Novo preço cadastrado no sd-preco para o produto: {}", produtoSalvo.getId());
+        } catch (Exception e) {
+            log.error("Erro ao registrar o preço no sd-preco para o id {}: {}", produtoSalvo.getId(), e.getMessage());
+        }
+
+        return new ProdutoResponseDTO(
+                produtoSalvo.getId(),
+                produtoSalvo.getNome(),
+                produtoSalvo.getDescricao(),
+                dto.preco()
+        );
+    }
+
+    public ProdutoResponseDTO updateProduto(Long id, ProdutoRequestDTO dto) {
+        log.info("Atualizando produto com id={}", id);
+
+        Produto produto = produtoRepository.findById(id)
+                .orElseThrow(() -> new ProdutoNaoEncontradoException("Produto não encontrado"));
+
+        if (dto.nome() != null && !dto.nome().isBlank()) {
+            produto.setNome(dto.nome());
+        }
+        if (dto.descricao() != null && !dto.descricao().isBlank()) {
+            produto.setDescricao(dto.descricao());
+        }
+        produtoRepository.save(produto);
+
+        Double precoAtualizado;
+
+        if (dto.preco() != null) {
+            try {
+                restTemplate.exchange(
+                        sdPrecoUrl + "/preco/atualizar/" + id,
+                        HttpMethod.PUT,
+                        new org.springframework.http.HttpEntity<>(Map.of("valor", dto.preco())),
+                        Void.class
+                );
+                precoAtualizado = dto.preco();
+                log.info("Preço atualizado no sd-preco: {}", precoAtualizado);
+            } catch (Exception e) {
+                log.error("Erro ao atualizar preço no sd-preco para o id {}: {}", id, e.getMessage());
+                precoAtualizado = getPrecoAtualDoSdPreco(id);
+            }
+        } else {
+            precoAtualizado = getPrecoAtualDoSdPreco(id);
+        }
+
+        return new ProdutoResponseDTO(produto.getId(), produto.getNome(), produto.getDescricao(), precoAtualizado);
+    }
+
+    public void deleteProduto(Long id) {
+        log.info("Excluindo produto com id={}", id);
+
+        if (!produtoRepository.existsById(id)) {
+            throw new ProdutoNaoEncontradoException("Produto não encontrado");
+        }
+
+        produtoRepository.deleteById(id);
+        log.info("Produto {} removido do banco local (catálogo)", id);
+
+        try {
+            restTemplate.exchange(
+                    sdPrecoUrl + "/preco/delete/" + id,
+                    HttpMethod.DELETE,
+                    null,
+                    Void.class
+            );
+            log.info("Apagado do sd-preco");
+        } catch (Exception e) {
+            log.error("Erro ao solicitar exclusão no sd-preco para o id {}: {}", id, e.getMessage());
+        }
+    }
+
+    private Double getPrecoAtualDoSdPreco(Long id) {
         try {
             PrecoResponseDTO precoResponse = restTemplate.getForObject(
                     sdPrecoUrl + "/preco/" + id,
                     PrecoResponseDTO.class
             );
             if (precoResponse != null) {
-                preco = precoResponse.preco();
+                return precoResponse.preco();
             }
         } catch (Exception e) {
             log.error("Erro ao comunicar com sd-preco para o id {}: {}", id, e.getMessage());
         }
-
-        return new ProdutoResponseDTO(produto.getId(), produto.getNome(), produto.getDescricao(), preco);
+        return null;
     }
 }

@@ -19,3 +19,5 @@ INSERT INTO produto (id, nome, descricao) VALUES
   (18, 'Caixa de Som', 'Caixa de som 2.1 com subwoofer'),
   (19, 'Nobreak', 'Nobreak 1200VA com 8 tomadas'),
   (20, 'Leitor de Cartão', 'Leitor de cartão SD e microSD USB');
+
+ALTER TABLE produto ALTER COLUMN id RESTART WITH 21;
