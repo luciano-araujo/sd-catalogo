@@ -18,7 +18,7 @@ import java.util.List;
 @RequestMapping("/catalogo")
 @RequiredArgsConstructor
 @Tag(name = "Catálogo", description = "Operações do serviço de catálogo de produtos")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class CatalogoController {
 
     private final CatalogoService catalogoService;
