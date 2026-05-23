@@ -29,6 +29,7 @@ public class CatalogoService {
     private String sdPrecoUrl;
 
     public List<ProdutoResponseDTO> getAllProdutos() {
+        log.info("Consultando todos os produtos");
         List<Produto> produtos = produtoRepository.findAll();
 
         List<Long> ids = produtos.stream()
